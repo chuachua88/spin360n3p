@@ -1,31 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>360 Spin Viewer</title>
+  <meta charset="UTF-8" />
+  <title>360 Spin</title>
   <style>
-    body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #111; }
-    #threesixty { width: 800px; height: 400px; }
+    body { margin: 0; padding: 0; text-align: center; background: #000; }
+    img { width: 100%; max-width: 800px; display: none; }
   </style>
 </head>
 <body>
-  <div id="threesixty"></div>
+  <div id="viewer"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/threesixty-slider@2.0.5/dist/threesixty.min.js"></script>
   <script>
+    const totalFrames = 72;
+    let current = 0;
+    const viewer = document.getElementById("viewer");
     const images = [];
-    for (let i = 1; i <= 72; i++) {
-      const num = String(i).padStart(3, '0');
-      images.push(`https://raw.githubusercontent.com/chuachua88/spin360n3p/main/image360n3p${num}.png`);
+
+    for (let i = 1; i <= totalFrames; i++) {
+      const num = i.toString().padStart(3, "0");
+      const img = new Image();
+      img.src = `https://raw.githubusercontent.com/chuachua88/spin360n3p/main/image360n3p${num}.png`;
+      img.style.display = i === 1 ? 'block' : 'none';
+      viewer.appendChild(img);
+      images.push(img);
     }
 
-    new ThreeSixty(document.getElementById('threesixty'), {
-      images: images,
-      width: 800,
-      height: 400,
-      drag: true,
-      autoplay: true,
-      autoplaySpeed: 60
+    let startX = null;
+    viewer.addEventListener("touchstart", e => {
+      startX = e.touches[0].clientX;
+    });
+
+    viewer.addEventListener("touchmove", e => {
+      if (startX === null) return;
+      const deltaX = e.touches[0].clientX - startX;
+      if (Math.abs(deltaX) > 10) {
+        images[current].style.display = "none";
+        if (deltaX > 0) {
+          current = (current - 1 + totalFrames) % totalFrames;
+        } else {
+          current = (current + 1) % totalFrames;
+        }
+        images[current].style.display = "block";
+        startX = e.touches[0].clientX;
+      }
+    });
+
+    // 鼠标也可以控制
+    viewer.addEventListener("mousedown", e => { startX = e.clientX; });
+    viewer.addEventListener("mousemove", e => {
+      if (e.buttons !== 1 || startX === null) return;
+      const deltaX = e.clientX - startX;
+      if (Math.abs(deltaX) > 10) {
+        images[current].style.display = "none";
+        if (deltaX > 0) {
+          current = (current - 1 + totalFrames) % totalFrames;
+        } else {
+          current = (current + 1) % totalFrames;
+        }
+        images[current].style.display = "block";
+        startX = e.clientX;
+      }
     });
   </script>
 </body>
