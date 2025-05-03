@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>360 Spin Viewer</title>
+  <style>
+    body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #111; }
+    #threesixty { width: 800px; height: 400px; }
+  </style>
+</head>
+<body>
+  <div id="threesixty"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/threesixty-slider@2.0.5/dist/threesixty.min.js"></script>
+  <script>
+    const images = [];
+    for (let i = 1; i <= 72; i++) {
+      const num = String(i).padStart(3, '0');
+      images.push(`https://raw.githubusercontent.com/chuachua88/spin360n3p/main/image360n3p${num}.png`);
+    }
+
+    new ThreeSixty(document.getElementById('threesixty'), {
+      images: images,
+      width: 800,
+      height: 400,
+      drag: true,
+      autoplay: true,
+      autoplaySpeed: 60
+    });
+  </script>
+</body>
+</html>
