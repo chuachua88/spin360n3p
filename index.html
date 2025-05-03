@@ -19,6 +19,7 @@
       background: #222;
       position: relative;
       overflow: hidden;
+      touch-action: none; /* 禁用缩放、滑动 */
     }
     #loading {
       position: absolute;
@@ -32,12 +33,12 @@
       width: 100%;
       height: 100%;
       display: block;
-      pointer-events: none; /* 禁用缩放 */
+      pointer-events: none; /* 禁止缩放/拖拽图像 */
     }
   </style>
 </head>
 <body>
-  <div class="viewer">
+  <div class="viewer" id="viewerBox">
     <div id="loading">Loading...</div>
     <canvas id="viewerCanvas"></canvas>
   </div>
@@ -50,13 +51,15 @@
     let currentFrame = 0;
     let canvas = document.getElementById('viewerCanvas');
     let ctx = canvas.getContext('2d');
-    let loadedCount = 0;
     let isLoaded = false;
+    let dragging = false;
+    let startX = 0;
 
     canvas.width = 1341;
     canvas.height = 729;
 
     // 加载图片
+    let loadedCount = 0;
     for (let i = 1; i <= totalFrames; i++) {
       const num = String(i).padStart(3, '0');
       const img = new Image();
@@ -66,26 +69,66 @@
         if (loadedCount === totalFrames) {
           isLoaded = true;
           document.getElementById("loading").style.display = "none";
-          startSpin();
+          drawFrame(currentFrame);
+          startAutoSpin();
         }
       };
       images.push(img);
     }
 
-    // 画当前帧
     function drawFrame(index) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(images[index], 0, 0, canvas.width, canvas.height);
     }
 
     // 自动旋转
-    function startSpin() {
+    function startAutoSpin() {
       setInterval(() => {
-        if (!isLoaded) return;
+        if (!isLoaded || dragging) return;
         currentFrame = (currentFrame + 1) % totalFrames;
         drawFrame(currentFrame);
-      }, 80); // 控制速度（越小越快）
+      }, 80);
     }
+
+    // 鼠标拖动事件
+    const viewerBox = document.getElementById("viewerBox");
+    viewerBox.addEventListener("mousedown", (e) => {
+      dragging = true;
+      startX = e.clientX;
+    });
+
+    viewerBox.addEventListener("mousemove", (e) => {
+      if (dragging) {
+        const dx = e.clientX - startX;
+        if (Math.abs(dx) > 5) {
+          startX = e.clientX;
+          currentFrame = (currentFrame + (dx > 0 ? -1 : 1) + totalFrames) % totalFrames;
+          drawFrame(currentFrame);
+        }
+      }
+    });
+
+    viewerBox.addEventListener("mouseup", () => { dragging = false; });
+    viewerBox.addEventListener("mouseleave", () => { dragging = false; });
+
+    // 触控拖动
+    viewerBox.addEventListener("touchstart", (e) => {
+      dragging = true;
+      startX = e.touches[0].clientX;
+    });
+
+    viewerBox.addEventListener("touchmove", (e) => {
+      if (dragging) {
+        const dx = e.touches[0].clientX - startX;
+        if (Math.abs(dx) > 5) {
+          startX = e.touches[0].clientX;
+          currentFrame = (currentFrame + (dx > 0 ? -1 : 1) + totalFrames) % totalFrames;
+          drawFrame(currentFrame);
+        }
+      }
+    });
+
+    viewerBox.addEventListener("touchend", () => { dragging = false; });
   </script>
 </body>
 </html>
